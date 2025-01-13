@@ -9,27 +9,44 @@ const App = () => {
 
   const handleGeneratePDF = async () => {
     if (!studentName || !fatherName || !month || !amount) {
-      alert("All fields are required!");
+      alert("Please fill in all fields.");
       return;
     }
-
+  
     try {
-      const response = await axios.post("http://localhost:3000/generate-pdf", {
-        studentName,
-        fatherName,
-        month,
-        amount,
-      });
-
-      const blob = new Blob([response.data], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `${studentName}_${month}.pdf`;
-      link.click();
+      const response = await fetch(
+        "https://invoice-generate-ten.vercel.app", // Replace with your actual deployed Vercel URL
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ studentName, fatherName, month, amount }),
+        }
+      );
+  
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+  
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${studentName}_${month}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+  
+        alert("PDF downloaded successfully!");
+      } else {
+        const errorText = await response.text();
+        alert(`Error: ${errorText}`);
+      }
     } catch (error) {
       console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
     }
   };
+  
 
   return (
     <div className="container">
